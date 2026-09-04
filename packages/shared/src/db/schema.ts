@@ -109,9 +109,10 @@ export const receipts = sqliteTable(
     customerId: text('customer_id')
       .notNull()
       .references(() => customers.id),
-    status: text('status').notNull().default('DRAFT'),
+    status: text('status').notNull().default('UNPAID'),
     totalCents: integer('total_cents').notNull(),
-    issuedAt: integer('issued_at', { mode: 'timestamp' }),
+    // Column is still `issued_at` at the DB level; it now records the payment date.
+    paidAt: integer('issued_at', { mode: 'timestamp' }),
     createdAt: integer('created_at', { mode: 'timestamp' })
       .notNull()
       .default(sql`(unixepoch())`),

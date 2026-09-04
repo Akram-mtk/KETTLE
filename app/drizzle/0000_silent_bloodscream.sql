@@ -43,7 +43,7 @@ CREATE TABLE `receipts` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`day` text NOT NULL,
 	`customer_id` text NOT NULL,
-	`status` text DEFAULT 'DRAFT' NOT NULL,
+	`status` text DEFAULT 'UNPAID' NOT NULL,
 	`total_cents` integer NOT NULL,
 	`issued_at` integer,
 	`created_at` integer DEFAULT (unixepoch()) NOT NULL,

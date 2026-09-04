@@ -10,7 +10,7 @@ import {
   stockAdjustments,
 } from '../src/db/schema';
 import { saveCustomerDay } from '../src/services/sales';
-import { generateReceipt, getReceipt, issueReceipt, listReceipts } from '../src/services/receipts';
+import { generateReceipt, getReceipt, listReceipts, markReceiptPaid } from '../src/services/receipts';
 
 const D1 = '2026-03-01';
 
@@ -47,7 +47,7 @@ describe('receipts', () => {
 
     const receipt = await generateReceipt(D1, customerId);
 
-    expect(receipt.status).toBe('DRAFT');
+    expect(receipt.status).toBe('UNPAID');
     expect(receipt.totalCents).toBe(30_000);
     expect(receipt.lines).toHaveLength(1);
     expect(receipt.outOfSync).toBe(false);
@@ -56,7 +56,7 @@ describe('receipts', () => {
   it('flags a receipt out of sync once the underlying sale changes', async () => {
     await sell(10, 3000);
     const receipt = await generateReceipt(D1, customerId);
-    await issueReceipt(receipt.id);
+    await markReceiptPaid(receipt.id);
 
     await sell(15, 3000);
 
@@ -71,7 +71,7 @@ describe('receipts', () => {
   it('regenerating rebuilds the snapshot and clears the drift', async () => {
     await sell(10, 3000);
     const receipt = await generateReceipt(D1, customerId);
-    await issueReceipt(receipt.id);
+    const paid = await markReceiptPaid(receipt.id);
 
     await sell(15, 3000);
     const regenerated = await generateReceipt(D1, customerId);
@@ -79,18 +79,18 @@ describe('receipts', () => {
     expect(regenerated.id).toBe(receipt.id);
     expect(regenerated.totalCents).toBe(45_000);
     expect(regenerated.outOfSync).toBe(false);
-    // Regenerating an already-issued receipt re-freezes it rather than reverting to DRAFT.
-    expect(regenerated.status).toBe('ISSUED');
-    expect(regenerated.issuedAt).not.toBeNull();
+    // Regenerating a paid receipt leaves its payment status and date untouched.
+    expect(regenerated.status).toBe('PAID');
+    expect(regenerated.paidAt).toBe(paid.paidAt);
   });
 
-  it('issuing is one-way and rejects a second issue', async () => {
+  it('marking paid is one-way and rejects a second payment', async () => {
     await sell(10, 3000);
     const receipt = await generateReceipt(D1, customerId);
 
-    const issued = await issueReceipt(receipt.id);
-    expect(issued.status).toBe('ISSUED');
+    const paid = await markReceiptPaid(receipt.id);
+    expect(paid.status).toBe('PAID');
 
-    await expect(issueReceipt(receipt.id)).rejects.toThrow(/déjà émis/);
+    await expect(markReceiptPaid(receipt.id)).rejects.toThrow(/déjà payé/);
   });
 });

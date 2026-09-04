@@ -111,13 +111,13 @@ export const t = {
   receipts: {
     title: 'Reçus',
     number: (n: number) => `Reçu N° ${n}`,
-    status: { DRAFT: 'Brouillon', ISSUED: 'Émis' },
+    status: { UNPAID: 'Non payé', PAID: 'Payé' },
     outOfSync: 'Désynchronisé',
     outOfSyncHelp:
-      'Les ventes ont changé depuis l’émission de ce reçu. Le document reste figé ; régénérez-le pour le mettre à jour.',
+      'Les ventes ont changé depuis la génération de ce reçu. Le document reste figé ; régénérez-le pour le mettre à jour.',
     regenerate: 'Régénérer',
-    issue: 'Émettre',
-    issued: 'Émis le',
+    markPaid: 'Marquer comme payé',
+    paid: 'Payé le',
     none: 'Aucun reçu.',
     noSales: 'Aucune vente pour ce client à cette date.',
     lineProduct: 'Produit',

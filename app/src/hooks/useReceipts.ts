@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Day } from '@kettle/shared';
-import { generateReceipt, getReceipt, issueReceipt, listReceipts } from '@kettle/shared';
+import { generateReceipt, getReceipt, listReceipts, markReceiptPaid } from '@kettle/shared';
 
 export function useReceiptList(filter: { day?: Day; customerId?: string }) {
   return useQuery({
@@ -33,10 +33,10 @@ export function useGenerateReceipt() {
   });
 }
 
-export function useIssueReceipt() {
+export function useMarkReceiptPaid() {
   const invalidate = useInvalidateReceipts();
   return useMutation({
-    mutationFn: (id: number) => issueReceipt(id),
+    mutationFn: (id: number) => markReceiptPaid(id),
     onSuccess: invalidate,
   });
 }

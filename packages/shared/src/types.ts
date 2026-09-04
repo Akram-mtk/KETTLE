@@ -55,7 +55,7 @@ export interface StockAdjustment {
 
 /* ── Ventes ──────────────────────────────────────────────────────────── */
 
-export type ReceiptStatus = 'DRAFT' | 'ISSUED';
+export type ReceiptStatus = 'UNPAID' | 'PAID';
 
 /** One row of the Ventes hub: what this customer took on this day. */
 export interface CustomerDaySummary {
@@ -137,7 +137,7 @@ export interface ReceiptSummary {
   customerName: string;
   status: ReceiptStatus;
   totalCents: number;
-  issuedAt: string | null;
+  paidAt: string | null;
   outOfSync: boolean;
 }
 

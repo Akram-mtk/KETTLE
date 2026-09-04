@@ -107,17 +107,11 @@ export async function generateReceipt(day: Day, customerId: string): Promise<Rec
   let receiptId: number;
   if (existing) {
     await db.delete(receiptLines).where(eq(receiptLines.receiptId, existing.id));
-    await db
-      .update(receipts)
-      .set({
-        totalCents,
-        // Regenerating an issued receipt re-freezes it at today's numbers.
-        issuedAt: existing.status === 'ISSUED' ? new Date() : null,
-      })
-      .where(eq(receipts.id, existing.id));
+    // Regenerating only refreshes the snapshot; payment status and date are untouched.
+    await db.update(receipts).set({ totalCents }).where(eq(receipts.id, existing.id));
     receiptId = existing.id;
   } else {
-    const [created] = await db.insert(receipts).values({ day, customerId, status: 'DRAFT', totalCents }).returning();
+    const [created] = await db.insert(receipts).values({ day, customerId, status: 'UNPAID', totalCents }).returning();
     receiptId = created!.id;
   }
 
@@ -126,13 +120,13 @@ export async function generateReceipt(day: Day, customerId: string): Promise<Rec
   return getReceipt(receiptId);
 }
 
-export async function issueReceipt(id: number): Promise<Receipt> {
+export async function markReceiptPaid(id: number): Promise<Receipt> {
   const db = getDb();
   const [receipt] = await db.select().from(receipts).where(eq(receipts.id, id));
   if (!receipt) throw notFound('Reçu');
-  if (receipt.status === 'ISSUED') throw conflict('Ce reçu est déjà émis.');
+  if (receipt.status === 'PAID') throw conflict('Ce reçu est déjà payé.');
 
-  await db.update(receipts).set({ status: 'ISSUED', issuedAt: new Date() }).where(eq(receipts.id, id));
+  await db.update(receipts).set({ status: 'PAID', paidAt: new Date() }).where(eq(receipts.id, id));
 
   return getReceipt(id);
 }
@@ -163,7 +157,7 @@ export async function getReceipt(id: number): Promise<Receipt> {
     customerName: customer!.name,
     status: receipt.status as ReceiptStatus,
     totalCents: receipt.totalCents,
-    issuedAt: receipt.issuedAt ? receipt.issuedAt.toISOString() : null,
+    paidAt: receipt.paidAt ? receipt.paidAt.toISOString() : null,
     outOfSync: fingerprint(lineRows.map((r) => r.line)) !== fingerprint(sales),
     lines: lineRows.map(({ line, product }) => ({
       productId: line.productId,
@@ -220,7 +214,7 @@ export async function listReceipts(filter: { day?: Day; customerId?: string }): 
     customerName: customer.name,
     status: receipt.status as ReceiptStatus,
     totalCents: receipt.totalCents,
-    issuedAt: receipt.issuedAt ? receipt.issuedAt.toISOString() : null,
+    paidAt: receipt.paidAt ? receipt.paidAt.toISOString() : null,
     outOfSync:
       fingerprint(linesByReceipt.get(receipt.id) ?? []) !==
       fingerprint(liveByKey.get(`${receipt.day}|${receipt.customerId}`) ?? []),

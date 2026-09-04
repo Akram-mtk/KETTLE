@@ -47,7 +47,7 @@ export default function RecusScreen() {
                   {receipt.outOfSync ? (
                     <Badge tone="amber">{t.receipts.outOfSync}</Badge>
                   ) : (
-                    <Badge tone={receipt.status === 'ISSUED' ? 'green' : 'slate'}>{t.receipts.status[receipt.status]}</Badge>
+                    <Badge tone={receipt.status === 'PAID' ? 'green' : 'amber'}>{t.receipts.status[receipt.status]}</Badge>
                   )}
                 </View>
               </Pressable>

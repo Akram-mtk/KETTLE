@@ -66,7 +66,7 @@ export default function VentesScreen() {
                       row.receipt.outOfSync ? (
                         <Badge tone="amber">{t.receipts.outOfSync}</Badge>
                       ) : (
-                        <Badge tone={row.receipt.status === 'ISSUED' ? 'green' : 'slate'}>
+                        <Badge tone={row.receipt.status === 'PAID' ? 'green' : 'amber'}>
                           {t.receipts.status[row.receipt.status]}
                         </Badge>
                       )

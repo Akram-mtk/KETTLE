@@ -6,7 +6,7 @@ import { Badge, Button, Card, ErrorState, Screen, Spinner } from '../../../compo
 import { formatDayLong } from '../../../lib/day';
 import { t } from '../../../i18n/fr';
 import { useToast } from '../../../lib/toast';
-import { useGenerateReceipt, useIssueReceipt, useReceipt } from '../../../hooks/useReceipts';
+import { useGenerateReceipt, useMarkReceiptPaid, useReceipt } from '../../../hooks/useReceipts';
 
 export default function RecuDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -15,14 +15,14 @@ export default function RecuDetailScreen() {
   const toast = useToast();
 
   const receipt = useReceipt(Number.isFinite(receiptId) ? receiptId : undefined);
-  const issue = useIssueReceipt();
+  const markPaid = useMarkReceiptPaid();
   const regenerate = useGenerateReceipt();
 
   const data = receipt.data;
 
-  const onIssue = () => {
-    issue.mutate(receiptId, {
-      onSuccess: () => toast.show(t.receipts.status.ISSUED),
+  const onMarkPaid = () => {
+    markPaid.mutate(receiptId, {
+      onSuccess: () => toast.show(t.receipts.status.PAID),
       onError: (error) => toast.show(error instanceof Error ? error.message : t.app.error, 'error'),
     });
   };
@@ -73,7 +73,7 @@ export default function RecuDetailScreen() {
                       {data.customerName}
                     </Text>
                   </View>
-                  <Badge tone={data.status === 'ISSUED' ? 'green' : 'slate'}>{t.receipts.status[data.status]}</Badge>
+                  <Badge tone={data.status === 'PAID' ? 'green' : 'amber'}>{t.receipts.status[data.status]}</Badge>
                 </View>
 
                 <Text className="mt-2 text-sm text-slate-600">
@@ -109,9 +109,9 @@ export default function RecuDetailScreen() {
             </Card>
 
             <View className="mt-3 gap-2">
-              {data.status === 'DRAFT' ? (
-                <Button className="w-full" onPress={onIssue} disabled={issue.isPending}>
-                  {t.receipts.issue}
+              {data.status === 'UNPAID' ? (
+                <Button className="w-full" onPress={onMarkPaid} disabled={markPaid.isPending}>
+                  {t.receipts.markPaid}
                 </Button>
               ) : null}
 
