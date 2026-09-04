@@ -40,7 +40,7 @@ export const productionDaySchema = z.object({
 /* ── Ventes ──────────────────────────────────────────────────────────── */
 
 /**
- * A sale line. quantity === 0 means "remove this line".
+ * A sale line. quantity == 0 means "remove this line".
  * A quantity with no price is rejected: a zero-price sale would silently
  * understate the day's takings, which is the one mistake worth blocking.
  */
